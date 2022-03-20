@@ -30,6 +30,9 @@ from transformers import (
 from transformers import logging as transformers_logging
 from transformers.integrations import is_ray_available
 
+import sys
+sys.path.append("/home/adityasv/multidoc2dial/md2d")
+from rag_splade import *
 
 if is_ray_available():
     import ray

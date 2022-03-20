@@ -1,0 +1,1 @@
+python run_beir.py --model_name splade --model_path /home/adityasv/multidoc2dial/splade/training_with_sentence_transformers/output/distilsplade_max_0.1_0.08_-home-adityasv-multidoc2dial-splade-weights-distilsplade_max-batch_size_16-lr_1e-06-2022-03-14_22-39-36/9387/0_MLMTransformer/

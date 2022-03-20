@@ -1,4 +1,7 @@
 import argparse
+import sys
+sys.path.append("/home/adityasv/multidoc2dial/md2d")
+from rag_splade import *
 from transformers import RagTokenizer, RagRetriever, RagTokenForGeneration, AutoTokenizer
 
 # https://huggingface.co/facebook/rag-token-base

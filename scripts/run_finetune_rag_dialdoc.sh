@@ -8,7 +8,8 @@ score=$3 # original reranking reranking_original
 task=$4 # grounding generation
 seed=$RANDOM 
 
-dpr=dpr-$domain-$seg
+# dpr=dpr-$domain-$seg
+dpr=distilsplade
 MODEL_NAME_OR_PATH=$CHECKPOINTS/rag-$dpr
 KB_FOLDER=../data/mdd_kb/knowledge_dataset-$dpr
 DATA_DIR=../data/mdd_$domain/dd-$task-$seg
@@ -33,7 +34,7 @@ python rag/finetune_rag_dialdoc.py \
     --n_val -1 \
     --n_test -1 \
     --n_docs 5 \
-    --train_batch_size 8 \
+    --train_batch_size 1 \
     --eval_batch_size 2 \
     --max_combined_length 300 \
     --max_source_length 128 \

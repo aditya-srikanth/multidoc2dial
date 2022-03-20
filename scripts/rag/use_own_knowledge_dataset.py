@@ -11,14 +11,20 @@ from datasets import Features, Sequence, Value, load_dataset
 
 import faiss
 from transformers import (
+    AutoTokenizer,
     DPRContextEncoder,
     DPRContextEncoderTokenizerFast,
     HfArgumentParser,
     RagRetriever,
     RagSequenceForGeneration,
     RagTokenizer,
+    AutoModel,
+    AutoTokenizer
 )
 
+import sys
+sys.path.append("/home/adityasv/multidoc2dial/md2d")
+from rag_splade import *
 
 logger = logging.getLogger(__name__)
 torch.set_grad_enabled(False)
@@ -89,8 +95,8 @@ def main(
     dataset = dataset.map(split_documents, batched=True, num_proc=processing_args.num_proc)
 
     # And compute the embeddings
-    ctx_encoder = DPRContextEncoder.from_pretrained(rag_example_args.dpr_ctx_encoder_model_name).to(device=device)
-    ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(rag_example_args.dpr_ctx_encoder_model_name)
+    ctx_encoder = AutoModel.from_pretrained(rag_example_args.dpr_ctx_encoder_model_name).to(device=device)
+    ctx_tokenizer = AutoTokenizer.from_pretrained(rag_example_args.dpr_ctx_encoder_model_name)
     new_features = Features(
         {"text": Value("string"), "title": Value("string"), "embeddings": Sequence(Value("float32"))}
     )  # optional, save as float32 instead of float64 to save space
@@ -194,7 +200,7 @@ class ProcessingArguments:
 @dataclass
 class IndexHnswArguments:
     d: int = field(
-        default=768,
+        default=30522,
         metadata={"help": "The dimension of the embeddings to pass to the HNSW Faiss index."},
     )
     m: int = field(
