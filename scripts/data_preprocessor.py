@@ -63,6 +63,17 @@ def split_text_section(spans, title, args):
         subtitles.append(parent_titles)
     return passages, subtitles
 
+def split_text_section_span(spans, title, args):
+    passages = []
+    subtitles = []
+    pre_sec = None
+    for span in spans:
+        if 't' not in span['id_sec'] :
+            if pre_sec!= span['id_sec'] :
+                subtitles.append( " //  ".join([title, span['title']]))
+                passages.append (" //  ".join([title, span['title'],span['text_sec']]))
+                pre_sec = span['id_sec']
+    return passages, subtitles
 
 def split_text(text: str, n=100, character=" "):
     """Split the text every ``n``-th occurrence of ``character``"""
@@ -210,6 +221,43 @@ def create_dpr_data(args):
         json.dump(passages, f, indent=4)
 
 
+def lcs(X, Y):
+    X = X.lower().split()
+    Y = Y[0].lower().split()
+    m = len(X)
+    n = len(Y)
+    L = [[None]*(n + 1) for i in range(m + 1)]
+    for i in range(m + 1):
+        for j in range(n + 1):
+            if i == 0 or j == 0 :
+                L[i][j] = 0
+            elif X[i-1] == Y[j-1]:
+                L[i][j] = L[i-1][j-1]+1
+            else:
+                L[i][j] = max(L[i-1][j], L[i][j-1])
+    return L[m][n]
+
+def map_spans(grounding, all_psgs, start_idx, num_psg):
+    mapping = []
+    for start in range(start_idx, start_idx + num_psg):
+        current_mapping = []
+        for end in range(start + 1, start_idx + num_psg + 1):
+            content = "".join(all_psgs[start:end])            
+            if grounding in content or rm_blank(grounding.lower(), True) in rm_blank(content.lower()):
+                current_mapping = list(range(start, end))
+            if len(current_mapping) == 1:
+                return current_mapping
+            elif len(current_mapping) > 1:
+                break
+        if current_mapping:
+            mapping = current_mapping
+    if len(mapping) ==0:        
+        score = []
+        for start in range(start_idx, start_idx + num_psg):
+            score.append(lcs(grounding, all_psgs[start:start+1]))
+        mapping = list(range(start_idx + score.index(max(score)), start_idx + score.index(max(score))+1))    
+    return mapping
+
 def map_passages(grounding, all_psgs, start_idx, num_psg):
     mapping = []
     for start in range(start_idx, start_idx + num_psg):
@@ -259,8 +307,10 @@ class DD_Loader:
                 continue
             if args.segmentation == "token":
                 passages = split_text(ex["doc_text"])
-            else:
+            elif args.segmentation == "structure":
                 passages, subtitles = split_text_section(ex["spans"], ex["title"], args)
+            else:
+                passages, subtitles  = split_text_section_span(ex["spans"], ex["title"], args)
             self.doc_psg_all.extend(passages)
             self.doc_domain_all.extend([ex["domain"]] * len(passages))
             self.d_doc_psg[ex["doc_id"]] = (start_idx, len(passages))
@@ -294,7 +344,10 @@ class DD_Loader:
             if not source_txt or not target_txt:
                 continue
             start_idx, num_psg = self.d_doc_psg[doc_id]
-            pids_pos = map_passages(grounding, self.doc_psg_all, start_idx, num_psg)
+            if args.segmentation in ["token", "structure"] :
+                pids_pos = map_passages(grounding, self.doc_psg_all, start_idx, num_psg)
+            else:
+                pids_pos = map_spans(grounding, self.doc_psg_all, start_idx, num_psg)
             source.append(source_txt)
             target.append(target_txt)
             qids.append(qid)
@@ -401,7 +454,7 @@ def main():
     parser.add_argument(
         "--cache_dir",
         type=str,
-        default=os.environ["HF_HOME"],
+        default="../cache",
         help="Path for caching the downloaded data by HuggingFace Datasets",
     )
     parser.add_argument(
@@ -474,7 +527,11 @@ def main():
     else:
         if args.target_domain:
             args.included_domains = [ele for ele in DOMAINS if ele != args.target_domain]
+        #create_dpr_data(args)
+        # args.split = 'validation'
         create_dpr_data(args)
+        # args.split = ''
+        
 
 
 if __name__ == "__main__":

@@ -41,6 +41,7 @@ parser.add_argument("--lambda_q", default=0.1, type=float)
 parser.add_argument("--lr", default=2e-5, type=float)
 parser.add_argument("--num_negs_per_system", default=5, type=int)
 parser.add_argument("--use_all_queries", default=False, action="store_true")
+parser.add_argument("--pair_lambda", type=float, default=0.0)
 args = parser.parse_args()
 
 #### Just some code to print debug information to stdout
@@ -127,7 +128,10 @@ class MSMARCODataset(Dataset):
 # For training the SentenceTransformer model, we need a dataset, a dataloader, and a loss used for training.
 train_dataset = MSMARCODataset(train_queries, corpus=corpus)
 train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=train_batch_size)
-train_loss = losses.MultipleNegativesRankingLossSplade(model=model, lambda_q=args.lambda_q, lambda_d=args.lambda_d)
+if args.pair_lambda > 0:
+    train_loss = losses.MultipleNegativesRankingLossSpladePair(model=model, lambda_q=args.lambda_q, lambda_d=args.lambda_d, pair_lambda=args.pair_lambda)
+else:
+    train_loss = losses.MultipleNegativesRankingLossSplade(model=model, lambda_q=args.lambda_q, lambda_d=args.lambda_d)
 
 # Train the model
 model.fit(train_objectives=[(train_dataloader, train_loss)],

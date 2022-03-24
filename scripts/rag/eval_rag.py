@@ -162,6 +162,7 @@ def evaluate_batch_retrieval(args, rag_model, questions, domains=None):  # old_q
         truncation=True,
         add_special_tokens=True,
         return_token_type_ids=True,
+        max_length=512 #TODO: this needs to be figured out automatically
     )
 
     retriever_input_ids = inputs_dict.input_ids.to(args.device)
@@ -255,6 +256,7 @@ def evaluate_batch_e2e(args, rag_model, questions, domains=None):
             truncation=True,
             add_special_tokens=True,
             return_token_type_ids=True,
+            max_length=512 #TODO: this needs to be figured out automatically
         )
 
         input_ids = inputs_dict.input_ids.to(args.device)

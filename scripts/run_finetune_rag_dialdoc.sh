@@ -27,7 +27,6 @@ python rag/finetune_rag_dialdoc.py \
     --passages_path $KB_FOLDER/my_knowledge_dataset \
     --index_path $KB_FOLDER/my_knowledge_dataset_index.faiss \
     --fp16 \
-    --profile \
     --do_train \
     --gpus 1 \
     --n_train -1 \
@@ -52,3 +51,5 @@ python rag/finetune_rag_dialdoc.py \
     --num_train_epochs 2 \
     --warmup_steps 500 \
     --gradient_accumulation_steps 1
+
+    # --profile \
